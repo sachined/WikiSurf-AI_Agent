@@ -12,7 +12,7 @@ How It Works:
 
 You can ask the Agent (best to ask about well-documented matters; it is not a social search engine).
 You can also leave it blank, and it will tell you about the Eiffel Tower.
-<img width="603" height="180" alt="image" src="https://github.com/user-attachments/assets/70517021-74e5-4212-8e6d-a51379944b2f" />
+<img width="603" height="180" alt="image" src="https://github.com/user-attachments/assets/70517021-74e5-4212-8e6d-a51379944b2f" />/n
 You can enter any topic, and it will start researching!
 <img width="897" height="830" alt="image" src="https://github.com/user-attachments/assets/ef05f629-0505-467e-9fc2-a2ebb3c4db40" />
 If the Wiki tool fails, the DDG tool will be used. 
