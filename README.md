@@ -28,4 +28,14 @@ Possibly add 2 more tools, but must be relevant to AI Agent progression, such as
 
 <img width="336" height="167" alt="image" src="https://github.com/user-attachments/assets/b00fc5e0-e932-46bb-837e-5703c1225795" />
 
+Update (2/18/26): Adding in screenshots to make repo easier to understand.
+
+This is when nothing is entered when asked about a research topic. Default is "Interesting facts about the Eiffel Tower"
+<img width="565" height="180" alt="image" src="https://github.com/user-attachments/assets/f852acbe-113b-4d74-8f8d-0ec9db39d43e" />
+When in thought, you will see an animation with the status of the agent. Goes through error checking and use wikipedia_tool to look for the topic on Wikipedia. If failed, it will go to DuckDuckGo's Search tool and get relevant info on the topic
+<img width="868" height="860" alt="image" src="https://github.com/user-attachments/assets/269bfd2f-1768-4dd3-9beb-601cea4fc142" />
+Once information is gathered, the LLM will clean up data and present only relevant facts about said topic
+<img width="860" height="567" alt="image" src="https://github.com/user-attachments/assets/b9c03dd8-2ffd-4a30-aeeb-4df27dbd7c5d" />
+
+
 
