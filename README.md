@@ -26,3 +26,6 @@ Still saved some code that might work for others. Would appreciate any feedback.
 Future Plans:
 Possibly add 2 more tools, but must be relevant to AI Agent progression, such as utilizing sub-agents while providing a supervisory role for the existing agent (WikiSurf). 🤷‍♂️
 
+<img width="336" height="167" alt="image" src="https://github.com/user-attachments/assets/b00fc5e0-e932-46bb-837e-5703c1225795" />
+
+
