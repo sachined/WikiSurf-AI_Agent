@@ -1,12 +1,12 @@
 from rich.console import Console
 from rich.panel import Panel
 from rich.pretty import Pretty
+from rich.prompt import Prompt
 from langchain_core.callbacks import BaseCallbackHandler
 
 
-# Initialize console with force_terminal=True to ensure color output
-# even in non-TTY environments like PyCharm's Python Console.
-console = Console(force_terminal=True)
+# Initialize console.
+console = Console()
 
 class RichAgentCallbackHandler(BaseCallbackHandler):
     """Custom callback handler to display agent steps in a rich table/box."""
@@ -77,10 +77,9 @@ def get_callback_handler():
 
 def get_user_input(prompt_text: str, default_value: str = "") -> str:
     """Prompts the user for input with an optional default value."""
-    prompt_str = f"[bold green]{prompt_text}[/bold green]"
-    if default_value:
-        prompt_str += f" [dim]({default_value})[/dim]"
-    prompt_str += ": "
-    
-    user_input = console.input(prompt_str).strip()
-    return user_input if user_input else default_value
+    # Using rich.prompt.Prompt handles terminal behavior better across environments
+    return Prompt.ask(
+        f"[bold green]{prompt_text}[/bold green]",
+        default=default_value,
+        console=console
+    )

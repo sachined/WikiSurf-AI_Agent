@@ -8,6 +8,7 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.runnables import RunnableConfig
 from langchain_classic.agents import create_tool_calling_agent, AgentExecutor
 
 from tools import wikipedia_tool, search_tool
@@ -89,16 +90,28 @@ class ResearchAgent:
         ]).partial(format_instructions=self.parser.get_format_instructions())
         
         agent = create_tool_calling_agent(llm=self.llm, prompt=prompt, tools=self.tools)
-        return AgentExecutor(agent=agent, tools=self.tools, verbose=False)
+        return AgentExecutor(
+            agent=agent, 
+            tools=self.tools, 
+            verbose=False,
+            handle_parsing_errors=True,
+            max_iterations=10
+        )
 
     def run(self, query: str) -> Tuple[ResearchResponse, Dict[str, Any]]:
         """Main execution flow for a research query."""
         handler = ui.get_callback_handler()
         
         with ui.get_status("[bold blue]Agent is researching...[/bold blue]"):
+            config: RunnableConfig = {
+                "callbacks": [handler],
+                "tags": ["research-agent"],
+                "metadata": {"topic": query},
+                "run_name": "ResearchAgent.run"
+            }
             raw_response = self.agent_executor.invoke(
                 {"input": query, "chat_history": []}, 
-                config={"callbacks": [handler]}
+                config
             )
         
         text_to_parse = self._extract_text_to_parse(raw_response)
@@ -109,7 +122,8 @@ class ResearchAgent:
         
         return structured_response, raw_response
 
-    def _extract_text_to_parse(self, raw_response: Dict[str, Any]) -> str:
+    @staticmethod
+    def _extract_text_to_parse(raw_response: Dict[str, Any]) -> str:
         """Safely extracts and cleans text from the raw response."""
         output = raw_response.get("output", "")
         
@@ -139,10 +153,15 @@ def run_research(query: str, provider: str = "anthropic"):
         ui.display_error(str(e), raw_response=raw_response)
 
 if __name__ == "__main__":
+    import sys
     # Default query
-    DEFAULT_TOPIC = "What are some interesting facts about the Eiffel Tower?"
+    DEFAULT_TOPIC = "Interesting facts about the Eiffel Tower"
     
-    # Prompt user for query
-    user_query = ui.get_user_input("Enter your research topic", default_value=DEFAULT_TOPIC)
+    # Use command-line arguments if provided
+    if len(sys.argv) > 1:
+        user_query = " ".join(sys.argv[1:])
+    else:
+        # Prompt user for query
+        user_query = ui.get_user_input("Enter your research topic", default_value=DEFAULT_TOPIC)
     
     run_research(user_query)
