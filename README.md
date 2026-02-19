@@ -31,4 +31,6 @@ Still saved some code that might work for others. Would appreciate any feedback.
 Future Plans:
 Possibly add 2 more tools, but must be relevant to AI Agent progression, such as utilizing sub-agents while providing a supervisory role for the existing agent (WikiSurf). 🤷‍♂️
 
-Update (2/18/26): Added screenshots to make the repo easier to understand.
+Update (2/18/26): Added screenshots to make the repo easier to understand. Now supports command-line argument.
+![img.png](img.png)
+
