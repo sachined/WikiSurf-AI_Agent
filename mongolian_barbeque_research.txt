@@ -1,0 +1,18 @@
+--- Research Output ---
+Timestamp: 2026-02-19_00:52:18
+
+{
+  "topic": "Mongolian Barbeque and its Influence on American Cuisine",
+  "summary": "Mongolian barbeque, despite its name, is not actually Mongolian in origin. It was developed in Taiwan in the 1950s by a waishengren and is more similar to teppanyaki than traditional barbecue. However, it has become popular in American Chinese cuisine, with chains allowing customers to customize their own stir-fry dishes on a circular grill. The simplicity and bold flavors of Mongolian beef in particular have contributed to its widespread popularity on American menus. While not historically accurate, the techniques of high-heat rapid stir-frying have become an integral part of American Chinese cuisine.",
+  "sources": [
+    "https://en.wikipedia.org/wiki/Mongolian_barbecue",
+    "https://www.kingbbq.com/blog/the-history-of-mongolian-barbecue",
+    "https://www.seriouseats.com/mongolian-barbecue-authentic-technique"
+  ],
+  "tools_used": [
+    "wikipedia_tool",
+    "search_tool",
+    "save_text_to_file"
+  ]
+}
+
