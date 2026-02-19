@@ -32,5 +32,33 @@ Future Plans:
 Possibly add 2 more tools, but must be relevant to AI Agent progression, such as utilizing sub-agents while providing a supervisory role for the existing agent (WikiSurf). 🤷‍♂️
 
 Update (2/18/26): Added screenshots to make the repo easier to understand. Now supports command-line argument.
-![img.png](img.png)
+![img_1.png](img_1.png)
+
+Update (2/19/26): main.py was refactored to use a factory pattern and a provider-to-class mapping.
+1. Type Safety with Enums: Introduced **ModelProvider** (_a str Enum_) to replace hardcoded string literals for LLM providers.
+2. Enhanced Factory Pattern:
+
+    ◦ Refactored **ModelFactory** to use a provider-to-class mapping (**_PROVIDER_MAP**).
+
+    ◦ Unified the logic for handling different parameter names (e.g., model for OpenAI vs. model_name for Anthropic).
+3. Modular Agent Design: 
+
+    ◦ Updated **ResearchAgent** to accept tools and system_prompt as optional constructor arguments, facilitating easier testing and customization.
+
+    ◦ Moved the hardcoded prompt to DEFAULT_SYSTEM_PROMPT.
+4. Robust Response Parsing:
+
+    ◦ Improved the **_extract_text_to_parse** method to handle a wider variety of LLM output formats (e.g., lists of message-like dictionaries).
+
+    ◦ Refined the _regex_ logic for extracting content between <result> tags.
+5. Clean Execution Flow:
+
+    ◦ Modularized the run_research entry point.
+
+    ◦ Simplified the CLI argument handling in the if __name__ == "__main__": block for better usability.
+6. Code Quality:
+
+    ◦ Improved docstrings and type hinting across all classes and functions.
+
+    ◦ Ensured adherence to Pydantic and LangChain best practices.
 
