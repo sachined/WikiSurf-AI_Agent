@@ -12,12 +12,15 @@ How It Works:
 
 You can ask the Agent (best to ask about well-documented matters; it is not a social search engine).
 You can also leave it blank, and it will tell you about the Eiffel Tower.
+
 <img width="603" height="180" alt="image" src="https://github.com/user-attachments/assets/70517021-74e5-4212-8e6d-a51379944b2f" />
 
 You can enter any topic, and it will start researching!
 <img width="897" height="830" alt="image" src="https://github.com/user-attachments/assets/ef05f629-0505-467e-9fc2-a2ebb3c4db40" />
+
 If the Wiki tool fails, the DDG tool will be used. 
 <img width="868" height="860" alt="image" src="https://github.com/user-attachments/assets/269bfd2f-1768-4dd3-9beb-601cea4fc142" />
+
 If that also fails, the buck stops with the AI agent (LLM-powered). Only Anthropic and OpenAI...for now (Langchain-dependent).
 It will show a Progress bar for all steps, and clean up the text into a neat box for each step (Agent Action/Output, Tool Output). 
 Each step is shown in a different color for better viewability.
