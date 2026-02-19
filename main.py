@@ -1,4 +1,5 @@
 import re
+from enum import Enum
 from typing import Optional, List, Tuple, Any, Dict, Type
 
 from dotenv import load_dotenv
@@ -11,11 +12,16 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnableConfig
 from langchain_classic.agents import create_tool_calling_agent, AgentExecutor
 
-from tools import wikipedia_tool, search_tool
+from tools import wikipedia_tool, search_tool, save_tool
 import ui
 
 # Load .env for local development
 load_dotenv()
+
+class ModelProvider(str, Enum):
+    """Supported LLM providers."""
+    ANTHROPIC = "anthropic"
+    OPENAI = "openai"
 
 class Settings(BaseSettings):
     """Configuration settings for the research agent."""
@@ -35,29 +41,30 @@ class ResearchResponse(BaseModel):
 class ModelFactory:
     """Factory to instantiate LLMs based on provider and model."""
 
-    _PROVIDERS = {
-        "anthropic": ChatAnthropic,
-        "openai": ChatOpenAI,
+    _PROVIDER_MAP = {
+        ModelProvider.ANTHROPIC: (ChatAnthropic, "model_name"),
+        ModelProvider.OPENAI: (ChatOpenAI, "model"),
     }
 
     @classmethod
-    def get_llm(cls, settings: Settings, provider: str = "anthropic", model: Optional[str] = None):
+    def get_llm(cls, settings: Settings, provider: ModelProvider = ModelProvider.ANTHROPIC, model: Optional[str] = None):
         """Returns the desired LLM instance."""
-        provider = provider.lower()
-        llm_class = cls._PROVIDERS.get(provider)
-
-        if not llm_class:
-            supported = ", ".join([f"'{p}'" for p in cls._PROVIDERS.keys()])
+        if provider not in cls._PROVIDER_MAP:
+            supported = ", ".join([f"'{p.value}'" for p in cls._PROVIDER_MAP.keys()])
             raise ValueError(
                 f"Unsupported provider: '{provider}'. Supported providers: {supported}."
             )
 
-        model_name_param = "model_name" if provider == "anthropic" else "model"
+        llm_class, model_param = cls._PROVIDER_MAP[provider]
+        
+        default_model = (
+            settings.anthropic_default_model 
+            if provider == ModelProvider.ANTHROPIC 
+            else settings.openai_default_model
+        )
+
         kwargs = {
-            model_name_param: model or (
-                settings.anthropic_default_model if provider == "anthropic" 
-                else settings.openai_default_model
-            ),
+            model_param: model or default_model,
             "timeout": settings.timeout
         }
 
@@ -66,7 +73,7 @@ class ModelFactory:
 class ResearchAgent:
     """Encapsulates the research agent creation and execution logic."""
 
-    SYSTEM_PROMPT = (
+    DEFAULT_SYSTEM_PROMPT = (
         "You are a research assistant that will help generate a research paper. "
         "Answer the user query and use necessary tools. "
         "IMPORTANT: Your final response MUST be a valid JSON object. "
@@ -74,16 +81,17 @@ class ResearchAgent:
         "Wrap the final output in <result> tags.\n{format_instructions}"
     )
 
-    def __init__(self, llm):
+    def __init__(self, llm, tools: Optional[List[Any]] = None, system_prompt: Optional[str] = None):
         self.llm = llm
+        self.tools = tools or [search_tool, wikipedia_tool, save_tool]
+        self.system_prompt = system_prompt or self.DEFAULT_SYSTEM_PROMPT
         self.parser = PydanticOutputParser(pydantic_object=ResearchResponse)
-        self.tools = [search_tool, wikipedia_tool]
         self.agent_executor = self._create_executor()
 
     def _create_executor(self) -> AgentExecutor:
         """Sets up the agent with tools and prompt."""
         prompt = ChatPromptTemplate.from_messages([
-            ("system", self.SYSTEM_PROMPT),
+            ("system", self.system_prompt),
             ("placeholder", "{chat_history}"),
             ("human", "{input}"),
             ("placeholder", "{agent_scratchpad}")
@@ -127,17 +135,18 @@ class ResearchAgent:
         """Safely extracts and cleans text from the raw response."""
         output = raw_response.get("output", "")
         
+        # Handle cases where output might be a list of message-like objects
         if isinstance(output, list) and output:
             first_item = output[0]
-            text_to_parse = first_item.get("text", str(first_item)) if isinstance(first_item, dict) else str(first_item)
+            text = first_item.get("text", str(first_item)) if isinstance(first_item, dict) else str(first_item)
         else:
-            text_to_parse = str(output)
+            text = str(output)
 
         # Robust extraction of content between <result> tags
-        match = re.search(r"<result>(.*?)(?:</result>|$)", text_to_parse, re.DOTALL)
-        return match.group(1).strip() if match else text_to_parse
+        match = re.search(r"<result>(.*?)(?:</result>|$)", text, re.DOTALL)
+        return match.group(1).strip() if match else text
 
-def run_research(query: str, provider: str = "anthropic"):
+def run_research(query: str, provider: ModelProvider = ModelProvider.ANTHROPIC):
     """Entry point to execute the research workflow."""
     raw_response = None
     try:
@@ -157,11 +166,12 @@ if __name__ == "__main__":
     # Default query
     DEFAULT_TOPIC = "Interesting facts about the Eiffel Tower"
     
-    # Use command-line arguments if provided
-    if len(sys.argv) > 1:
-        user_query = " ".join(sys.argv[1:])
-    else:
-        # Prompt user for query
+    # Simple CLI argument parsing
+    user_query = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else ""
+    
+    if not user_query:
+        # Prompt user for query if not provided via CLI
         user_query = ui.get_user_input("Enter your research topic", default_value=DEFAULT_TOPIC)
     
-    run_research(user_query)
+    # Defaulting to Anthropic for the research run
+    run_research(user_query, provider=ModelProvider.ANTHROPIC)
