@@ -5,7 +5,7 @@ The Process:
 Since then, there have been many changes to a few libraries used in this project (especially langchain and its friends). 
 So I researched with AI on snippets of code that were functioning but deprecated.
 That was mostly my first day and a bit of the second day.
-Once that was done, I abstracted a few classes from a wall of text into 3 Python files.
+Once that was done, I abstracted a few classes from a wall of text into three Python files.
 So far, the AI Agent has a Wiki tool that can look up information on its website (Wikipedia), a DuckDuckGo (DDG) tool that functions like Google Search.
 
 How It Works:
@@ -22,7 +22,7 @@ If the Wiki tool fails, the DDG tool will be used.
 <img width="868" height="860" alt="image" src="https://github.com/user-attachments/assets/269bfd2f-1768-4dd3-9beb-601cea4fc142" />
 
 If that also fails, the buck stops with the AI agent (LLM-powered). Only Anthropic and OpenAI...for now (Langchain-dependent).
-It will show a Progress bar for all steps, and clean up the text into a neat box for each step (Agent Action/Output, Tool Output). 
+It will show a Progress bar for all steps and clean up the text into a neat box for each step (Agent Action/Output, Tool Output). 
 Each step is shown in a different color for better viewability.
 Ultimately, it will show a box with the topic, summary, sources, and tools used for the query (Structured Research Response).
 <img width="860" height="567" alt="image" src="https://github.com/user-attachments/assets/b9c03dd8-2ffd-4a30-aeeb-4df27dbd7c5d" />
@@ -31,8 +31,8 @@ Thoughts:
 I am happy that this AI Agent works! I spent too much time trying to get color on the Terminal. It was a simple checkbox option in its settings after looking all over (even with AI).
 Still saved some code that might work for others. Would appreciate any feedback. Now it's 🕡 in the morning 😢
 
-Future Plans:
-Possibly add 2 more tools, but must be relevant to AI Agent progression, such as utilizing sub-agents while providing a supervisory role for the existing agent (WikiSurf). 🤷‍♂️
+Future:
+Possibly add two more tools, but must be relevant to AI Agent progression, such as using subagents while providing a supervisory role for the existing agent (WikiSurf). 🤷‍♂️
 
 Update (2/18/26): Added screenshots to make the repo easier to understand. Now supports command-line argument.
 ![img_1.png](img_1.png)

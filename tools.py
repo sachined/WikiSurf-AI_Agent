@@ -10,14 +10,14 @@ _wiki_search = WikipediaQueryRun(api_wrapper=_wiki_api_wrapper)
 
 @tool("save_text_to_file", description="Save structured research data to a text file.")
 def save_to_txt(data: str, filename: str = "research_output.txt"):
-    """Saves provided data to a text file with timestamped header.
+    """Saves provided data to a text file with a timestamped header.
 
     Args:
         data: The content to be saved.
         filename: The name of the file to save to. Defaults to 'research_output.txt'.
 
     Returns:
-        A message indicating successful save.
+        A message indicating a successful save.
     """
     timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     formatted_text = f"--- Research Output ---\nTimestamp: {timestamp}\n\n{data}\n\n"
