@@ -35,7 +35,7 @@ Future:
 Possibly add two more tools, but must be relevant to AI Agent progression, such as using subagents while providing a supervisory role for the existing agent (WikiSurf). 🤷‍♂️
 
 Update (2/18/26): Added screenshots to make the repo easier to understand. Now supports command-line argument.
-![img_1.png](img_1.png)
+![img_1.png](Images%20and%20Text/img_1.png)
 
 Update (2/19/26): main.py was refactored to use a factory pattern and a provider-to-class mapping.
 1. Type Safety with Enums: Introduced **ModelProvider** (_a str Enum_) to replace hardcoded string literals for LLM providers.
