@@ -25,6 +25,7 @@ If that also fails, the buck stops with the AI agent (LLM-powered). Only Anthrop
 It will show a Progress bar for all steps and clean up the text into a neat box for each step (Agent Action/Output, Tool Output). 
 Each step is shown in a different color for better viewability.
 Ultimately, it will show a box with the topic, summary, sources, and tools used for the query (Structured Research Response).
+
 <img width="860" height="567" alt="image" src="https://github.com/user-attachments/assets/b9c03dd8-2ffd-4a30-aeeb-4df27dbd7c5d" />
 
 Thoughts:
