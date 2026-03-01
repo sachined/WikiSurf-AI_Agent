@@ -9,30 +9,32 @@ An autonomous research agent that accepts a natural-language topic, orchestrates
 ## Architecture
 
 ```mermaid
-flowchart TD
-    CLI["CLI / Interactive Prompt\n(main.py)"]
-    Factory["ModelFactory\n(Anthropic · OpenAI)"]
-    Agent["ResearchAgent\n(LangChain AgentExecutor)"]
-    WikiTool["Wikipedia Tool"]
-    DDGTool["DuckDuckGo Search Tool"]
-    SaveTool["Save-to-File Tool"]
-    Parser["PydanticOutputParser\n(ResearchResponse)"]
-    UI["Rich Terminal UI\n(ui.py)"]
+sequenceDiagram
+    actor User
+    participant CLI as main.py
+    participant Factory as ModelFactory
+    participant Agent as AgentExecutor (LLM)
+    participant Tools as Tools (Wiki / DDG / Save)
+    participant Parser as PydanticOutputParser
+    participant UI as Rich Terminal UI
 
-    CLI -->|user query| Factory
-    Factory -->|LLM instance| Agent
-    Agent -->|tool call 1| WikiTool
-    WikiTool -->|result / fallback| DDGTool
-    DDGTool -->|result / fallback| Agent
-    Agent -->|tool call 3| SaveTool
-    Agent -->|raw output| Parser
-    Parser -->|structured response| UI
+    User->>CLI: research topic
+    CLI->>Factory: get_llm()
+    Factory-->>Agent: LLM instance
+    CLI->>Agent: invoke(query)
+    loop Thought → Action → Observation (≤10 iterations)
+        Agent->>Tools: tool call (LLM-chosen)
+        Tools-->>Agent: observation
+    end
+    Agent-->>Parser: raw output
+    Parser-->>UI: ResearchResponse
+    UI-->>User: formatted results
 ```
 
 **Execution flow:**
 1. The user supplies a research topic via the CLI or the interactive prompt.
 2. `ModelFactory` instantiates the chosen LLM (Anthropic or OpenAI) from environment settings.
-3. `ResearchAgent` runs the LangChain `AgentExecutor`, which calls tools in priority order: Wikipedia → DuckDuckGo → LLM fallback.
+3. `ResearchAgent` runs the LangChain `AgentExecutor` in a Thought → Action → Observation loop (up to 10 iterations); the LLM dynamically selects which tool to call — Wikipedia, DuckDuckGo, or Save-to-File — based on its reasoning at each step.
 4. The raw output is parsed into a typed `ResearchResponse` (topic, summary, sources, tools used).
 5. `ui.py` renders each agent step in a colour-coded panel, a progress bar, and a final structured results box.
 
@@ -40,7 +42,7 @@ flowchart TD
 
 ## Features
 
-- **Multi-tool orchestration** — Wikipedia is queried first; DuckDuckGo serves as an automatic fallback; the LLM itself acts as a last-resort knowledge source.
+- **Multi-tool orchestration** — the LLM dynamically selects from Wikipedia, DuckDuckGo, and a file-save tool across multiple reasoning iterations; tool choice is driven by the agent's own judgment, not a hardcoded sequence.
 - **Structured output** — responses are validated against a Pydantic schema and always include topic, summary, sources, and tools used.
 - **Provider flexibility** — swap between Anthropic (Claude) and OpenAI (GPT-4o) via a single enum argument; model names are configurable in `.env`.
 - **Rich terminal UI** — colour-coded agent steps, a live progress spinner, and formatted result panels powered by the `rich` library.
@@ -146,7 +148,7 @@ WikiSurf/
 | **`ModelProvider` str Enum** | Eliminates hardcoded string literals and provides IDE autocompletion and type safety |
 | **Pydantic schema for output** | Guarantees a consistent, validated response structure regardless of LLM verbosity or formatting variations |
 | **Callback-based UI updates** | LangChain callbacks allow the UI layer to react to each agent step without coupling it to core logic |
-| **Tool priority fallback chain** | Maximises the likelihood of a high-quality, sourced answer before falling back to the LLM's parametric knowledge |
+| **Dynamic tool selection** | The LLM autonomously decides which tool to call each iteration; no hardcoded sequence is enforced, allowing the agent to adapt its strategy to the specific query |
 
 ---
 
@@ -160,6 +162,4 @@ WikiSurf/
 
 ## Roadmap
 
-- [ ] Add sub-agent support (supervisor + specialist agents) to handle multi-step, multi-domain queries.
-- [ ] Expand LLM provider support beyond Anthropic and OpenAI (currently constrained by LangChain's tool-calling interface).
-- [ ] Integrate additional specialised tools (e.g., arXiv, news APIs) to broaden research coverage.
+The features previously planned here — sub-agent support, additional LLM providers, and expanded tool integrations — are actively being developed in **FinSurf**, the successor project built on the foundations established in WikiSurf. No further feature development is planned for this repository.
