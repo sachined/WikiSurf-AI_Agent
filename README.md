@@ -1,68 +1,165 @@
-This was inspired by a YouTube video by "Tech With Tim" (https://www.youtube.com/watch?v=bTMPwUgLZf0), where he built an AI Agent in Python last year.
+# WikiSurf — AI-Powered Research Agent
 
-The Process:
+An autonomous research agent that accepts a natural-language topic, orchestrates multiple search tools in priority order, and returns a structured summary with cited sources — all rendered in a rich terminal UI.
 
-Since then, there have been many changes to a few libraries used in this project (especially langchain and its friends). 
-So I researched with AI on snippets of code that were functioning but deprecated.
-That was mostly my first day and a bit of the second day.
-Once that was done, I abstracted a few classes from a wall of text into three Python files.
-So far, the AI Agent has a Wiki tool that can look up information on its website (Wikipedia), a DuckDuckGo (DDG) tool that functions like Google Search.
+> **Inspired by** [Tech With Tim — Build an AI Agent in Python](https://www.youtube.com/watch?v=bTMPwUgLZf0)
 
-How It Works:
+---
 
-You can ask the Agent (best to ask about well-documented matters; it is not a social search engine).
-You can also leave it blank, and it will tell you about the Eiffel Tower.
+## Architecture
 
-<img width="603" height="180" alt="image" src="https://github.com/user-attachments/assets/70517021-74e5-4212-8e6d-a51379944b2f" />
+```mermaid
+flowchart TD
+    CLI["CLI / Interactive Prompt\n(main.py)"]
+    Factory["ModelFactory\n(Anthropic · OpenAI)"]
+    Agent["ResearchAgent\n(LangChain AgentExecutor)"]
+    WikiTool["Wikipedia Tool"]
+    DDGTool["DuckDuckGo Search Tool"]
+    SaveTool["Save-to-File Tool"]
+    Parser["PydanticOutputParser\n(ResearchResponse)"]
+    UI["Rich Terminal UI\n(ui.py)"]
 
-You can enter any topic, and it will start researching!
-<img width="897" height="830" alt="image" src="https://github.com/user-attachments/assets/ef05f629-0505-467e-9fc2-a2ebb3c4db40" />
+    CLI -->|user query| Factory
+    Factory -->|LLM instance| Agent
+    Agent -->|tool call 1| WikiTool
+    WikiTool -->|result / fallback| DDGTool
+    DDGTool -->|result / fallback| Agent
+    Agent -->|tool call 3| SaveTool
+    Agent -->|raw output| Parser
+    Parser -->|structured response| UI
+```
 
-If the Wiki tool fails, the DDG tool will be used. 
-<img width="868" height="860" alt="image" src="https://github.com/user-attachments/assets/269bfd2f-1768-4dd3-9beb-601cea4fc142" />
+**Execution flow:**
+1. The user supplies a research topic via the CLI or the interactive prompt.
+2. `ModelFactory` instantiates the chosen LLM (Anthropic or OpenAI) from environment settings.
+3. `ResearchAgent` runs the LangChain `AgentExecutor`, which calls tools in priority order: Wikipedia → DuckDuckGo → LLM fallback.
+4. The raw output is parsed into a typed `ResearchResponse` (topic, summary, sources, tools used).
+5. `ui.py` renders each agent step in a colour-coded panel, a progress bar, and a final structured results box.
 
-If that also fails, the buck stops with the AI agent (LLM-powered). Only Anthropic and OpenAI...for now (Langchain-dependent).
-It will show a Progress bar for all steps and clean up the text into a neat box for each step (Agent Action/Output, Tool Output). 
-Each step is shown in a different color for better viewability.
-Ultimately, it will show a box with the topic, summary, sources, and tools used for the query (Structured Research Response).
+---
 
-<img width="860" height="567" alt="image" src="https://github.com/user-attachments/assets/b9c03dd8-2ffd-4a30-aeeb-4df27dbd7c5d" />
+## Features
 
-Thoughts:
-I am happy that this AI Agent works! I spent too much time trying to get color on the Terminal. It was a simple checkbox option in its settings after looking all over (even with AI).
-Still saved some code that might work for others. Would appreciate any feedback. Now it's 🕡 in the morning 😢
+- **Multi-tool orchestration** — Wikipedia is queried first; DuckDuckGo serves as an automatic fallback; the LLM itself acts as a last-resort knowledge source.
+- **Structured output** — responses are validated against a Pydantic schema and always include topic, summary, sources, and tools used.
+- **Provider flexibility** — swap between Anthropic (Claude) and OpenAI (GPT-4o) via a single enum argument; model names are configurable in `.env`.
+- **Rich terminal UI** — colour-coded agent steps, a live progress spinner, and formatted result panels powered by the `rich` library.
+- **Persistent output** — the `save_text_to_file` tool appends timestamped research results to a local text file.
+- **CLI support** — pass a topic directly as a command-line argument or enter it interactively.
 
-Future:
-Possibly add two more tools, but must be relevant to AI Agent progression, such as using subagents while providing a supervisory role for the existing agent (WikiSurf). 🤷‍♂️
+---
 
-Update (2/18/26): Added screenshots to make the repo easier to understand. Now supports command-line argument.
-![img_1.png](Images%20and%20Text/img_1.png)
+## Tech Stack
 
-Update (2/19/26): main.py was refactored to use a factory pattern and a provider-to-class mapping.
-1. Type Safety with Enums: Introduced **ModelProvider** (_a str Enum_) to replace hardcoded string literals for LLM providers.
-2. Enhanced Factory Pattern:
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Language** | Python 3.11+ | Core runtime |
+| **Agent Framework** | LangChain (`langchain`, `langchain-classic`) | Agent orchestration, tool-calling, prompt templating |
+| **LLM Providers** | `langchain-anthropic`, `langchain-openai` | Claude & GPT-4o integration |
+| **Search Tools** | `langchain-community`, `wikipedia`, `duckduckgo-search` | Wikipedia & DuckDuckGo tool wrappers |
+| **Data Validation** | `pydantic`, `pydantic-settings` | Typed response schema & environment config |
+| **Terminal UI** | `rich`, `pygments` | Colour-coded panels, progress bars, syntax highlighting |
+| **Config** | `python-dotenv` | API key management via `.env` |
 
-    ◦ Refactored **ModelFactory** to use a provider-to-class mapping (**_PROVIDER_MAP**).
+---
 
-    ◦ Unified the logic for handling different parameter names (e.g., model for OpenAI vs. model_name for Anthropic).
-3. Modular Agent Design: 
+## Getting Started
 
-    ◦ Updated **ResearchAgent** to accept tools and system_prompt as optional constructor arguments, facilitating easier testing and customization.
+### Prerequisites
+- Python 3.11+
+- An Anthropic **or** OpenAI API key
 
-    ◦ Moved the hardcoded prompt to DEFAULT_SYSTEM_PROMPT.
-4. Robust Response Parsing:
+### Installation
 
-    ◦ Improved the **_extract_text_to_parse** method to handle a wider variety of LLM output formats (e.g., lists of message-like dictionaries).
+```bash
+git clone https://github.com/your-username/WikiSurf.git
+cd WikiSurf
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+pip install -r requirements.txt
+```
 
-    ◦ Refined the _regex_ logic for extracting content between <result> tags.
-5. Clean Execution Flow:
+### Configuration
 
-    ◦ Modularized the run_research entry point.
+Create a `.env` file in the project root:
 
-    ◦ Simplified the CLI argument handling in the if __name__ == "__main__": block for better usability.
-6. Code Quality:
+```env
+ANTHROPIC_API_KEY=your_anthropic_key_here
+OPENAI_API_KEY=your_openai_key_here        # optional
+```
 
-    ◦ Improved docstrings and type hinting across all classes and functions.
+### Usage
 
-    ◦ Ensured adherence to Pydantic and LangChain best practices.
+```bash
+# Interactive prompt (defaults to Eiffel Tower if left blank)
+python main.py
 
+# Pass a topic directly
+python main.py Mongolian barbeque history
+```
+
+---
+
+## Screenshots
+
+**Interactive prompt**
+
+<img width="603" height="180" alt="Interactive prompt" src="https://github.com/user-attachments/assets/70517021-74e5-4212-8e6d-a51379944b2f" />
+
+**Agent researching a topic (Wikipedia tool)**
+
+<img width="897" height="830" alt="Agent researching" src="https://github.com/user-attachments/assets/ef05f629-0505-467e-9fc2-a2ebb3c4db40" />
+
+**DuckDuckGo fallback in action**
+
+<img width="868" height="860" alt="DuckDuckGo fallback" src="https://github.com/user-attachments/assets/269bfd2f-1768-4dd3-9beb-601cea4fc142" />
+
+**Structured Research Response**
+
+<img width="860" height="567" alt="Structured response" src="https://github.com/user-attachments/assets/b9c03dd8-2ffd-4a30-aeeb-4df27dbd7c5d" />
+
+**CLI argument support**
+
+![CLI argument example](Images%20and%20Text/img_1.png)
+
+---
+
+## Project Structure
+
+```
+WikiSurf/
+├── main.py           # ModelFactory, ResearchAgent, entry point
+├── tools.py          # Wikipedia, DuckDuckGo, and file-save tool definitions
+├── ui.py             # Rich terminal UI components and callback handler
+├── requirements.txt  # Python dependencies
+├── .env              # API keys (not committed)
+└── Images and Text/  # Sample output and screenshots
+```
+
+---
+
+## Key Technical Decisions
+
+| Decision | Rationale |
+|---|---|
+| **Factory pattern** (`ModelFactory`) | Decouples LLM instantiation from agent logic; adding a new provider requires only a single map entry |
+| **`ModelProvider` str Enum** | Eliminates hardcoded string literals and provides IDE autocompletion and type safety |
+| **Pydantic schema for output** | Guarantees a consistent, validated response structure regardless of LLM verbosity or formatting variations |
+| **Callback-based UI updates** | LangChain callbacks allow the UI layer to react to each agent step without coupling it to core logic |
+| **Tool priority fallback chain** | Maximises the likelihood of a high-quality, sourced answer before falling back to the LLM's parametric knowledge |
+
+---
+
+## Changelog
+
+**2026-02-19** — Refactored `main.py` with `ModelProvider` enum, enhanced `ModelFactory`, modular `ResearchAgent` constructor, improved `<result>` tag parsing, and strengthened type hints and docstrings throughout.
+
+**2026-02-18** — Added screenshots; introduced command-line argument support.
+
+---
+
+## Roadmap
+
+- [ ] Add sub-agent support (supervisor + specialist agents) to handle multi-step, multi-domain queries.
+- [ ] Expand LLM provider support beyond Anthropic and OpenAI (currently constrained by LangChain's tool-calling interface).
+- [ ] Integrate additional specialised tools (e.g., arXiv, news APIs) to broaden research coverage.
